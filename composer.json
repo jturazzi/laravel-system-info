@@ -1,8 +1,22 @@
 {
     "name": "jturazzi/laravel-system-info",
     "description": "Exposes a token-protected /api/system-info endpoint (versions, database, queue, disk, health) for Laravel applications.",
+    "keywords": [
+        "laravel",
+        "health-check",
+        "monitoring",
+        "system-info",
+        "status"
+    ],
+    "homepage": "https://github.com/jturazzi/laravel-system-info",
     "type": "library",
-    "license": "proprietary",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jérémy Turazzi",
+            "homepage": "https://github.com/jturazzi"
+        }
+    ],
     "require": {
         "php": "^8.3",
         "illuminate/support": "^12.0|^13.0"

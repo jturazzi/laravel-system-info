@@ -23,7 +23,6 @@ Error messages are limited to the exception class and code (no host or credentia
 ## Installation
 
 ```bash
-composer config repositories.system-info vcs https://github.com/jturazzi/laravel-system-info
 composer require jturazzi/laravel-system-info
 ```
 
@@ -85,3 +84,7 @@ php artisan vendor:publish --tag=system-info-config
 ```
 
 Lets you change the path (`SYSTEM_INFO_PATH`), the list of reported packages and the alert thresholds.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
