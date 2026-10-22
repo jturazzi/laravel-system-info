@@ -226,7 +226,9 @@ class SystemInfo
         try {
             $info['pending'] = Queue::connection()->size();
         } catch (Throwable $e) {
+            // e.g. QUEUE_CONNECTION=database without a jobs table: dispatching would fail too.
             $info['error'] = $this->errorMessage($e);
+            $this->issue('queue', self::STATUS_DEGRADED, 'Queue unavailable');
         }
 
         try {
