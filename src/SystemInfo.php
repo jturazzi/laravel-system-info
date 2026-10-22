@@ -5,6 +5,7 @@ namespace Jturazzi\SystemInfo;
 use Composer\InstalledVersions;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Queue\Failed\CountableFailedJobProvider;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -225,10 +226,21 @@ class SystemInfo
 
         try {
             $info['pending'] = Queue::connection()->size();
+            $info['oldest_pending_at'] = $this->oldestPendingJob();
         } catch (Throwable $e) {
             // e.g. QUEUE_CONNECTION=database without a jobs table: dispatching would fail too.
             $info['error'] = $this->errorMessage($e);
             $this->issue('queue', self::STATUS_DEGRADED, 'Queue unavailable');
+        }
+
+        $maxAge = config('system-info.pending_job_max_age_minutes');
+
+        if ($maxAge !== null && ($info['oldest_pending_at'] ?? null) !== null) {
+            $minutes = (int) Carbon::parse($info['oldest_pending_at'])->diffInMinutes(now());
+
+            if ($minutes > (int) $maxAge) {
+                $this->issue('queue', self::STATUS_DEGRADED, 'Oldest pending job has waited '.$this->duration($minutes).': is a queue worker running?');
+            }
         }
 
         try {
@@ -246,6 +258,38 @@ class SystemInfo
         }
 
         return $info;
+    }
+
+    /**
+     * When the oldest ready-to-run job became available (database driver only).
+     */
+    private function oldestPendingJob(): ?string
+    {
+        $name = config('queue.default');
+        $queue = config("queue.connections.{$name}");
+
+        if (($queue['driver'] ?? null) !== 'database') {
+            return null;
+        }
+
+        // available_at rather than created_at: delayed jobs are not late.
+        $timestamp = DB::connection($queue['connection'] ?? null)
+            ->table($queue['table'] ?? 'jobs')
+            ->where('queue', $queue['queue'] ?? 'default')
+            ->whereNull('reserved_at')
+            ->where('available_at', '<=', now()->getTimestamp())
+            ->min('available_at');
+
+        return $timestamp ? Carbon::createFromTimestamp((int) $timestamp)->toIso8601String() : null;
+    }
+
+    private function duration(int $minutes): string
+    {
+        return match (true) {
+            $minutes >= 2 * 1440 => intdiv($minutes, 1440).' days',
+            $minutes >= 120 => intdiv($minutes, 60).' hours',
+            default => $minutes.' minutes',
+        };
     }
 
     /**

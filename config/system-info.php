@@ -65,4 +65,8 @@ return [
     // Above this number of failed jobs, the status becomes "degraded".
     'failed_jobs_warning' => 0,
 
+    // A ready job waiting longer than this usually means no worker is running
+    // (database queue driver only). Set SYSTEM_INFO_PENDING_JOB_MAX_AGE=null to disable.
+    'pending_job_max_age_minutes' => env('SYSTEM_INFO_PENDING_JOB_MAX_AGE', 60),
+
 ];

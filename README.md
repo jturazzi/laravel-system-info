@@ -15,7 +15,7 @@ Exposes the same token-protected `GET /api/system-info` endpoint in every Larave
 | `queue` | connection, pending jobs, failed jobs |
 | `storage` | writable, free disk space, log size |
 
-Becomes `degraded` on: maintenance mode, pending migrations, failed jobs, broken cache, non-writable storage, less than 10% free disk.
+Becomes `degraded` on: maintenance mode, pending migrations, failed jobs, unavailable queue, a ready job waiting more than 60 minutes (database queue: usually no worker running, see `SYSTEM_INFO_PENDING_JOB_MAX_AGE`), broken cache, non-writable storage, less than 10% free disk.
 Becomes `down` when the database is unreachable.
 
 Error messages are limited to the exception class and code (no host or credentials).
