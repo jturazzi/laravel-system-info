@@ -4,11 +4,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Jeton d'accès
+    | Access token
     |--------------------------------------------------------------------------
     |
-    | Jeton attendu dans l'en-tête "Authorization: Bearer <jeton>".
-    | Sans jeton configuré, la route répond 404 (désactivée).
+    | Token expected in the "Authorization: Bearer <token>" header.
+    | When no token is configured, the route responds 404 (disabled).
     |
     */
 
@@ -18,11 +18,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Version déployée
+    | Deployed version
     |--------------------------------------------------------------------------
     |
-    | Renseignées au build de l'image Docker (ARG/ENV), le dépôt .git
-    | n'étant pas copié dans l'image.
+    | Set when building the Docker image (ARG/ENV), since the .git
+    | directory is not copied into the image.
     |
     */
 
@@ -34,10 +34,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Paquets Composer dont la version est remontée
+    | Composer packages whose version is reported
     |--------------------------------------------------------------------------
     |
-    | Seuls les paquets réellement installés apparaissent dans la réponse.
+    | Only packages that are actually installed appear in the response.
     |
     */
 
@@ -55,14 +55,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Seuils
+    | Thresholds
     |--------------------------------------------------------------------------
     */
 
-    // En dessous de ce pourcentage d'espace libre, le statut passe à "degraded".
+    // Below this percentage of free disk space, the status becomes "degraded".
     'disk_free_warning_percent' => 10,
 
-    // Au-delà de ce nombre de jobs en échec, le statut passe à "degraded".
+    // Above this number of failed jobs, the status becomes "degraded".
     'failed_jobs_warning' => 0,
 
 ];

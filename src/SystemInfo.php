@@ -1,6 +1,6 @@
 <?php
 
-namespace Anefloire\SystemInfo;
+namespace Jturazzi\SystemInfo;
 
 use Composer\InstalledVersions;
 use Illuminate\Contracts\Foundation\Application;
@@ -56,7 +56,7 @@ class SystemInfo
         $maintenance = $this->app->isDownForMaintenance();
 
         if ($maintenance) {
-            $this->issue('app', self::STATUS_DEGRADED, 'Application en mode maintenance');
+            $this->issue('app', self::STATUS_DEGRADED, 'Application is in maintenance mode');
         }
 
         return [
@@ -83,7 +83,7 @@ class SystemInfo
 
         $root = InstalledVersions::getRootPackage()['pretty_version'] ?? null;
 
-        // "dev-main" ou "1.0.0+no-version-set" n'apportent rien : le commit est remonté à part.
+        // "dev-main" or "1.0.0+no-version-set" are meaningless: the commit is reported separately.
         return $root && ! Str::startsWith($root, 'dev-') && ! Str::contains($root, 'no-version-set') ? $root : null;
     }
 
@@ -144,7 +144,7 @@ class SystemInfo
             $info['size_bytes'] = $this->databaseSize($connection);
         } catch (Throwable $e) {
             $info['error'] = $this->errorMessage($e);
-            $this->issue('database', self::STATUS_DOWN, 'Base de données injoignable');
+            $this->issue('database', self::STATUS_DOWN, 'Database unreachable');
 
             return $info;
         }
@@ -158,11 +158,11 @@ class SystemInfo
                 $info['pending_migrations'] = count($pending);
 
                 if ($pending !== []) {
-                    $this->issue('database', self::STATUS_DEGRADED, count($pending).' migration(s) en attente');
+                    $this->issue('database', self::STATUS_DEGRADED, count($pending).' pending migration(s)');
                 }
             } else {
                 $info['pending_migrations'] = null;
-                $this->issue('database', self::STATUS_DEGRADED, 'Table des migrations absente');
+                $this->issue('database', self::STATUS_DEGRADED, 'Migrations table missing');
             }
         } catch (Throwable $e) {
             $info['pending_migrations'] = null;
@@ -173,7 +173,7 @@ class SystemInfo
 
     private function databaseVersion(string $version): string
     {
-        // MariaDB renvoie par ex. "11.8.6-MariaDB-ubu2404" : on garde la partie numérique.
+        // MariaDB returns e.g. "11.8.6-MariaDB-ubu2404": keep the numeric part only.
         return preg_match('/^(\d+\.\d+\.\d+)/', $version, $m) ? $m[1] : $version;
     }
 
@@ -210,7 +210,7 @@ class SystemInfo
         }
 
         if (! $info['ok']) {
-            $this->issue('cache', self::STATUS_DEGRADED, 'Cache inaccessible');
+            $this->issue('cache', self::STATUS_DEGRADED, 'Cache unavailable');
         }
 
         return $info;
@@ -236,11 +236,11 @@ class SystemInfo
                 $info['failed'] = $failer->count();
 
                 if ($info['failed'] > (int) config('system-info.failed_jobs_warning', 0)) {
-                    $this->issue('queue', self::STATUS_DEGRADED, $info['failed'].' job(s) en échec');
+                    $this->issue('queue', self::STATUS_DEGRADED, $info['failed'].' failed job(s)');
                 }
             }
         } catch (Throwable) {
-            // Pas de table failed_jobs : rien à signaler.
+            // No failed_jobs table: nothing to report.
         }
 
         return $info;
@@ -259,11 +259,11 @@ class SystemInfo
         $writable = is_writable(storage_path('framework')) && is_writable(storage_path('logs'));
 
         if (! $writable) {
-            $this->issue('storage', self::STATUS_DEGRADED, 'Répertoire storage non accessible en écriture');
+            $this->issue('storage', self::STATUS_DEGRADED, 'Storage directory is not writable');
         }
 
         if ($freePercent !== null && $freePercent < (float) config('system-info.disk_free_warning_percent', 10)) {
-            $this->issue('storage', self::STATUS_DEGRADED, "Espace disque faible ({$freePercent} % libre)");
+            $this->issue('storage', self::STATUS_DEGRADED, "Low disk space ({$freePercent}% free)");
         }
 
         return [
@@ -308,7 +308,7 @@ class SystemInfo
 
     private function errorMessage(Throwable $e): string
     {
-        // Le message PDO peut contenir hôte/utilisateur : on se limite à la classe et au code.
+        // PDO messages may contain host/username: only expose the class and code.
         return class_basename($e).($e->getCode() ? ' ('.$e->getCode().')' : '');
     }
 }

@@ -1,15 +1,15 @@
 <?php
 
-namespace Anefloire\SystemInfo\Console;
+namespace Jturazzi\SystemInfo\Console;
 
-use Anefloire\SystemInfo\SystemInfo;
 use Illuminate\Console\Command;
+use Jturazzi\SystemInfo\SystemInfo;
 
 class SystemInfoCommand extends Command
 {
     protected $signature = 'system-info';
 
-    protected $description = 'Affiche le rapport exposé par la route /api/system-info';
+    protected $description = 'Display the report exposed by the /api/system-info route';
 
     public function handle(SystemInfo $systemInfo): int
     {

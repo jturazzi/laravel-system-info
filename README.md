@@ -1,52 +1,52 @@
-# anefloire/laravel-system-info
+# jturazzi/laravel-system-info
 
-Expose la même route `GET /api/system-info` dans toutes les applications Laravel ANEF Loire, consommée par le tableau de bord central [`status`](../status).
+Exposes the same token-protected `GET /api/system-info` endpoint in every Laravel application, consumed by the central [`status`](https://github.com/jturazzi/status) dashboard.
 
-## Ce qui est remonté
+## What is reported
 
-| Bloc | Contenu |
-|------|---------|
-| `status` | `ok`, `degraded` ou `down` (HTTP 503 si `down`) + liste `issues` |
-| `app` | nom, environnement, debug, URL, **version, commit, date de build**, maintenance |
-| `runtime` | PHP, Laravel, SAPI, serveur, OS, OPcache, limites PHP, extensions |
-| `packages` | versions des paquets clés (Inertia, Livewire, Socialite…) |
-| `database` | driver, **version** (MariaDB / SQLite / PostgreSQL), latence, taille, migrations en attente |
-| `cache` | store + test écriture/lecture |
-| `queue` | connexion, jobs en attente, jobs en échec |
-| `storage` | écriture possible, espace disque libre, taille des logs |
+| Block | Content |
+|-------|---------|
+| `status` | `ok`, `degraded` or `down` (HTTP 503 when `down`) + `issues` list |
+| `app` | name, environment, debug, URL, **version, commit, build date**, maintenance |
+| `runtime` | PHP, Laravel, SAPI, server, OS, OPcache, PHP limits, extensions |
+| `packages` | versions of key packages (Inertia, Livewire, Socialite…) |
+| `database` | driver, **version** (MariaDB / MySQL / SQLite / PostgreSQL), latency, size, pending migrations |
+| `cache` | store + write/read check |
+| `queue` | connection, pending jobs, failed jobs |
+| `storage` | writable, free disk space, log size |
 
-Passe en `degraded` : maintenance, migrations en attente, jobs en échec, cache KO, storage non inscriptible, disque < 10 % libre.
-Passe en `down` : base de données injoignable.
+Becomes `degraded` on: maintenance mode, pending migrations, failed jobs, broken cache, non-writable storage, less than 10% free disk.
+Becomes `down` when the database is unreachable.
 
-Les messages d'erreur se limitent à la classe et au code de l'exception (aucun hôte ni identifiant).
+Error messages are limited to the exception class and code (no host or credentials).
 
 ## Installation
 
 ```bash
-composer config repositories.system-info vcs <URL_DU_DEPOT>
-composer require anefloire/laravel-system-info
+composer config repositories.system-info vcs https://github.com/jturazzi/laravel-system-info
+composer require jturazzi/laravel-system-info
 ```
 
-Le service provider est découvert automatiquement.
+The service provider is auto-discovered.
 
-`.env` :
+`.env`:
 
 ```dotenv
-SYSTEM_INFO_TOKEN=<jeton aléatoire long>   # openssl rand -hex 32
+SYSTEM_INFO_TOKEN=<long random token>   # openssl rand -hex 32
 ```
 
-Sans `SYSTEM_INFO_TOKEN`, la route répond 404.
+Without `SYSTEM_INFO_TOKEN`, the route responds 404.
 
 ```bash
-curl -H "Authorization: Bearer $SYSTEM_INFO_TOKEN" https://fleet.anefloire.cloud/api/system-info
-php artisan system-info   # même rapport en CLI (dans le conteneur)
+curl -H "Authorization: Bearer $SYSTEM_INFO_TOKEN" https://app.example.com/api/system-info
+php artisan system-info   # same report from the CLI (e.g. inside the container)
 ```
 
-## Version et commit dans l'image Docker
+## Version and commit in the Docker image
 
-`.git` est exclu de l'image : la CI injecte les informations au build.
+`.git` is excluded from the image, so CI injects this information at build time.
 
-`Dockerfile` (stage final, avant `COPY . /var/www/html`) :
+`Dockerfile` (final stage, before `COPY . /var/www/html`):
 
 ```dockerfile
 ARG APP_VERSION
@@ -57,7 +57,7 @@ ENV APP_VERSION=${APP_VERSION} \
     APP_BUILD_DATE=${APP_BUILD_DATE}
 ```
 
-GitLab CI :
+GitLab CI:
 
 ```yaml
 docker build \
@@ -67,7 +67,7 @@ docker build \
   -t "$IMAGE_TAG" .
 ```
 
-GitHub Actions (`docker/build-push-action`) :
+GitHub Actions (`docker/build-push-action`):
 
 ```yaml
 build-args: |
@@ -76,7 +76,7 @@ build-args: |
   APP_BUILD_DATE=${{ github.event.head_commit.timestamp }}
 ```
 
-Ordre de résolution de la version : `APP_VERSION` → `config('app.version')` → version du `composer.json` racine.
+Version resolution order: `APP_VERSION` → `config('app.version')` → root `composer.json` version.
 
 ## Configuration
 
@@ -84,4 +84,4 @@ Ordre de résolution de la version : `APP_VERSION` → `config('app.version')` �
 php artisan vendor:publish --tag=system-info-config
 ```
 
-Permet de changer le chemin (`SYSTEM_INFO_PATH`), la liste des paquets remontés et les seuils d'alerte.
+Lets you change the path (`SYSTEM_INFO_PATH`), the list of reported packages and the alert thresholds.

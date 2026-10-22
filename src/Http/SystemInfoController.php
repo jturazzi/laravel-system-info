@@ -1,9 +1,9 @@
 <?php
 
-namespace Anefloire\SystemInfo\Http;
+namespace Jturazzi\SystemInfo\Http;
 
-use Anefloire\SystemInfo\SystemInfo;
 use Illuminate\Http\JsonResponse;
+use Jturazzi\SystemInfo\SystemInfo;
 
 class SystemInfoController
 {
@@ -11,7 +11,7 @@ class SystemInfoController
     {
         $report = $systemInfo->collect();
 
-        // 503 si l'application est hors service, pour les sondes de supervision.
+        // 503 when the application is down, for monitoring probes.
         return response()
             ->json($report, $report['status'] === SystemInfo::STATUS_DOWN ? 503 : 200)
             ->header('Cache-Control', 'no-store');
