@@ -1,0 +1,23 @@
+{
+    "name": "anefloire/laravel-system-info",
+    "description": "Expose une route /api/system-info (versions, base de données, queue, disque, santé) commune à toutes les applications Laravel ANEF Loire.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^12.0|^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Anefloire\\SystemInfo\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Anefloire\\SystemInfo\\SystemInfoServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
