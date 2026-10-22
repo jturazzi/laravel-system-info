@@ -1,6 +1,6 @@
 # jturazzi/laravel-system-info
 
-Exposes the same token-protected `GET /api/system-info` endpoint in every Laravel application, consumed by the central [`status`](https://github.com/jturazzi/status) dashboard.
+Exposes the same token-protected `GET /api/system-info` endpoint in every Laravel application, consumed by the central [`laravel-status`](https://github.com/jturazzi/laravel-status) dashboard.
 
 ## What is reported
 
