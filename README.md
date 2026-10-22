@@ -45,14 +45,12 @@ php artisan system-info   # same report from the CLI (e.g. inside the container)
 
 `.git` is excluded from the image, so CI injects this information at build time.
 
-`Dockerfile` (final stage, before `COPY . /var/www/html`):
+`Dockerfile` (end of the final stage, after `composer install` to keep the layer cache):
 
 ```dockerfile
-ARG APP_VERSION
 ARG APP_COMMIT
 ARG APP_BUILD_DATE
-ENV APP_VERSION=${APP_VERSION} \
-    APP_COMMIT=${APP_COMMIT} \
+ENV APP_COMMIT=${APP_COMMIT} \
     APP_BUILD_DATE=${APP_BUILD_DATE}
 ```
 
@@ -60,7 +58,6 @@ GitLab CI:
 
 ```yaml
 docker build \
-  --build-arg APP_VERSION="${CI_COMMIT_TAG:-$CI_COMMIT_REF_NAME}" \
   --build-arg APP_COMMIT="$CI_COMMIT_SHORT_SHA" \
   --build-arg APP_BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   -t "$IMAGE_TAG" .
@@ -69,11 +66,20 @@ docker build \
 GitHub Actions (`docker/build-push-action`):
 
 ```yaml
-build-args: |
-  APP_VERSION=${{ github.ref_name }}
-  APP_COMMIT=${{ github.sha }}
-  APP_BUILD_DATE=${{ github.event.head_commit.timestamp }}
+- name: Build date
+  id: build-date
+  run: echo "value=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+- uses: docker/build-push-action@v7
+  with:
+    build-args: |
+      APP_COMMIT=${{ github.sha }}
+      APP_BUILD_DATE=${{ steps.build-date.outputs.value }}
 ```
+
+The application version is deliberately **not** injected by CI: an empty or branch-name
+`APP_VERSION` baked into the image would override the one defined in `config/app.php`
+or in `docker-compose.yml`.
 
 Version resolution order: `APP_VERSION` → `config('app.version')` → root `composer.json` version.
 
